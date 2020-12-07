@@ -1,7 +1,7 @@
 import argparse
 import logging
 
-import src.statemachine as statemachine
+import src.statemachine.statemachine as statemachine
 
 def run_daemon(args):
     print("Running daemon...")

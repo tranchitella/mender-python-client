@@ -11,8 +11,10 @@ import subprocess
 def aggregate(path="/usr/share/mender/inventory"):
     """Runs all the inventory scripts in 'path', and parses the 'key=value' pairs
     into a data-structure ready for passing it on to the Mender server"""
+    keyvals = {}
     for inventory_script in inventory_scripts(path):
-        inventory_script.run()
+        keyvals.update(inventory_script.run())
+    return keyvals
 
 
 def inventory_scripts(inventory_dir):
@@ -40,14 +42,20 @@ class InventoryScript(object):
         # TODO -- Set a proper timeout
         output = subprocess.run(self.script_path, stdout=subprocess.PIPE, timeout=100)
         # Parse the output
-        for line in str(output.stdout).split("\n"):
-            print(line)
+        ss = output.stdout.decode()
+        for line in ss.split("\n"):
+            if line == "":
+                continue
             arr = line.strip().split("=")
             # TODO -- handle, and pretty up!
-            assert len(arr) == 2
+            # print(f"aggregated line: {line}")
+            assert len(arr) == 2, f"Real len: {len(arr)}"
             key, val = arr[0], arr[1]
-            vals = self.vals.get(key, [])
-            vals.append(val)
+            # print(f"dict: {self.vals}")
+            l = self.vals.get(key, [])
+            l.append(val)
+            self.vals[key] = l
+        return self.vals
 
 
 # class InventoryKeyVal(dict):
