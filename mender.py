@@ -21,8 +21,7 @@ def run_bootstrap(args):
     print(type(a))
     log.info("Device bootstrapped successfully")
 
-
-if __name__ == "__main__":
+def main():
     # TODO -- set up logging properly
     # For now, only write to the tty
     log.basicConfig(stream=sys.stderr, level=log.DEBUG)
@@ -114,3 +113,8 @@ if __name__ == "__main__":
     # if args.show_artifact:
     #     print("Artifact: foobar")
     # parser.print_help()
+
+
+
+if __name__ == "__main__":
+    main()
