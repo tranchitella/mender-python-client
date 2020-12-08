@@ -1,3 +1,4 @@
+import logging as log
 import requests
 
 
@@ -9,8 +10,9 @@ class AuthReqData(object):
         self.pubkey = pubkey
 
 
-def attempt():
+def request(id_data, tenant_token, public_key):
     print("Authorizing...")
+    Client().authorize()
     return True
 
 
@@ -29,5 +31,11 @@ class Client(object):
             "https://hosted.mender.io/api/devices/v1/authentication/auth_requests",
             headers=headers,
         )
+        log.debug(f"Authorization request returned: {r}")
+        if r.status_code == 200:
+            log.info("The client successfully authenticated with the Mender server")
+        else:
+            log.error("The client failed to authorize with the Mender server.")
+            log.error(f"Error {r.reason}. code: {r.status_code}")
 
         print(r.json())

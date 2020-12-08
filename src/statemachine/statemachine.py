@@ -1,6 +1,16 @@
 import time
+import logging as log
 
 import src.inventory.aggregator as inventory
+import src.bootstrap as bootstrap
+import src.client.authorize as authorize
+
+# TODO -- How to construct the context (?)
+class Context(dict):
+    """Class for storing the state-machine context"""
+
+    def __init__(self):
+        self.private_key = None
 
 
 class State(object):
@@ -20,25 +30,33 @@ class State(object):
 
 
 class Init(State):
-    def run(self):
-        pass
+    def run(context, self):
+        log.debug("InitState: run()")
+        private_key = bootstrap.now()
+        context.private_key = private_key
 
 
 ##########################################
+
 
 def run():
     StateMachine().run()
 
 
 class StateMachine(object):
+
+    # Maybe hold the context here (?)
+
     def __init__(self):
+        log.info("Initializing the state-machine")
+        self.context = Context()
         self.unauthorized_machine = UnauthorizedStateMachine()
         self.authorized_machine = AuthorizedStateMachine()
 
     def run(self):
-        Init().run()
+        Init().run(self.context)
         while True:
-            self.unauthorized_machine.run()
+            self.unauthorized_machine.run(self.context)
             self.authorized_machine.run()
 
 
@@ -50,14 +68,15 @@ class StateMachine(object):
 
 
 class Authorize(State):
-    def run(self):
+    def run(self, context):
         print("Authorizing...")
         time.sleep(3)
+        authorize.request(None, None, None)
         return True
 
 
 class Idle(State):
-    def run(self):
+    def run(self, context):
         print("Idling...")
         time.sleep(10)
         return True
@@ -69,11 +88,11 @@ class UnauthorizedStateMachine(StateMachine):
     def __init__(self):
         pass
 
-    def run(self):
+    def run(self, context):
         while True:
-            if Authorize().run():
+            if Authorize().run(context):
                 return
-            Idle().run()
+            Idle().run(context)
 
 
 class AuthorizedStateMachine(StateMachine):
