@@ -1,7 +1,9 @@
 import argparse
-import logging
+import logging as log
+import sys
 
 import src.statemachine.statemachine as statemachine
+import src.bootstrap as bootstrap
 
 def run_daemon(args):
     print("Running daemon...")
@@ -15,9 +17,16 @@ def show_artifact(args):
 def run_bootstrap(args):
     print("Bootstrapping...")
     print(args)
+    a = bootstrap.now()
+    print(type(a))
+    log.info("Device bootstrapped successfully")
+
 
 if __name__ == "__main__":
-    logging.info("Hello, world!")
+    # TODO -- set up logging properly
+    # For now, only write to the tty
+    log.basicConfig(stream=sys.stderr, level=log.DEBUG)
+    log.info("Hello, world!")
     parser = argparse.ArgumentParser(
         prog="mender",
         description="""mender
