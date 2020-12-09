@@ -6,6 +6,17 @@ class NoConfigurationFileError(Exception):
     pass
 
 
+class Config(dict):
+    """A dictionary for storing Mender configuration values"""
+
+    def __init__(self, *args, **kw):
+        super(Config, self).__init__(self, *args, **kw)
+        self.__dict__ = self
+
+    # TODO - handle non-existing keys, or explicitly map to all acceptable
+    # values
+
+
 def load(
     local_path="/etc/mender/mender.conf", global_path="/data/etc/mender/mender.conf"
 ):
@@ -27,7 +38,14 @@ def load(
         raise NoConfigurationFileError
     if global_conf and local_conf:
         # Merge the two files, giving precedence to the local configuration
-        return {**global_conf, **local_conf}
+        b = {**global_conf, **local_conf}
+        c = Config()
+        c.update(b)
+        return c
     if global_conf:
-        return global_conf
-    return local_conf
+        c = Config()
+        c.update(global_conf)
+        return c
+    c = Config()
+    c.update(local_conf)
+    return c
