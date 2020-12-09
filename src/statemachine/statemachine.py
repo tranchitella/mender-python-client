@@ -8,7 +8,7 @@ import src.client.authorize as authorize
 import src.config.config as config
 
 # TODO -- How to construct the context (?)
-class Context(dict):
+class Context(object):
     """Class for storing the state-machine context"""
 
     def __init__(self):
@@ -32,9 +32,10 @@ class State(object):
 
 
 class Init(State):
-    def run(context, self):
+    def run(self, context):
         log.debug("InitState: run()")
         try:
+            context.config = {}
             config_file = config.load(
                 local_path="tests/data/configs/local_mender.conf",
                 global_path="tests/data/configs/global_mender.conf",
@@ -49,9 +50,12 @@ class Init(State):
         identity_data = identity.aggregate(
             path="tests/data/identity/mender-device-identity"
         )
-        context.identity = identity_data
+        context.identity_data = identity_data
         private_key = bootstrap.now()
         context.private_key = private_key
+        context.foo = "bar"
+        log.debug(f"Init set context to: {context}")
+        return context
 
 
 ##########################################
@@ -68,11 +72,14 @@ class StateMachine(object):
     def __init__(self):
         log.info("Initializing the state-machine")
         self.context = Context()
+        self.context.private_key = "foo"
+        log.info(f"ctx: {self.context}")
         self.unauthorized_machine = UnauthorizedStateMachine()
         self.authorized_machine = AuthorizedStateMachine()
 
     def run(self):
-        Init().run(self.context)
+        self.context = Init().run(self.context)
+        log.debug(f"Initialized context: {self.context}")
         while True:
             self.unauthorized_machine.run(self.context)
             self.authorized_machine.run()
@@ -87,9 +94,15 @@ class StateMachine(object):
 
 class Authorize(State):
     def run(self, context):
-        print("Authorizing...")
+        log.info("Authorizing...")
+        log.debug(f"Current context: {context}")
         time.sleep(3)
-        authorize.request(None, None, None)
+        authorize.request(
+            context.config.ServerURL,
+            context.config.TenantToken,
+            context.identity_data,
+            context.private_key,
+        )
         return True
 
 
