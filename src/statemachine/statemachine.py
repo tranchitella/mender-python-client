@@ -4,6 +4,7 @@ import logging as log
 import src.inventory.aggregator as inventory
 import src.bootstrap as bootstrap
 import src.client.authorize as authorize
+import src.config.config as config
 
 # TODO -- How to construct the context (?)
 class Context(dict):
@@ -32,6 +33,18 @@ class State(object):
 class Init(State):
     def run(context, self):
         log.debug("InitState: run()")
+        try:
+            config_file = config.load(
+                local_path="tests/data/configs/local_mender.conf",
+                global_path="tests/data/configs/global_mender.conf",
+            )
+            context.config = config_file
+            log.info(f"Loaded configuration: {config_file}")
+        except config.NoConfigurationFileError:
+            log.error(
+                "No configuration files found for the device."
+                "Most likely, the device will not be functional."
+            )
         private_key = bootstrap.now()
         context.private_key = private_key
 
