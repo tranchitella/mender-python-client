@@ -2,6 +2,7 @@ import time
 import logging as log
 
 import src.inventory.aggregator as inventory
+import src.identity.aggregator as identity
 import src.bootstrap as bootstrap
 import src.client.authorize as authorize
 import src.config.config as config
@@ -45,6 +46,10 @@ class Init(State):
                 "No configuration files found for the device."
                 "Most likely, the device will not be functional."
             )
+        identity_data = identity.aggregate(
+            path="tests/data/identity/mender-device-identity"
+        )
+        context.identity = identity_data
         private_key = bootstrap.now()
         context.private_key = private_key
 
