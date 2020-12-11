@@ -6,6 +6,7 @@ import src.identity.aggregator as identity
 import src.bootstrap as bootstrap
 import src.client.authorize as authorize
 import src.client.inventory as client_inventory
+import src.client.update as client_update
 import src.config.config as config
 
 # TODO -- How to construct the context (?)
@@ -162,8 +163,9 @@ class SyncInventory(State):
 class SyncUpdate(State):
     def run(self, context):
         print("Checking for updates...")
+        client_update.request(context.config.ServerURL, context.JWT)
         time.sleep(2)
-        return True
+        return False
 
 
 class IdleStateMachine(AuthorizedStateMachine):

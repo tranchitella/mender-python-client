@@ -2,8 +2,6 @@ import requests
 import logging as log
 import json
 
-link = "https://hosted.mender.io/api/devices/v1/inventory"
-
 
 def request(server_url, JWT, inventory_data):
     log.debug(
