@@ -47,11 +47,13 @@ class Client(object):
             headers=headers,
         )
         log.debug(f"Authorization request returned: {r}")
-        print(r.json())
+        log.debug(f"response: {r.text}")
         if r.status_code == 200:
             log.info("The client successfully authenticated with the Mender server")
-            return True
+            JWT=r.text
+            return JWT
         else:
             log.error("The client failed to authorize with the Mender server.")
             log.error(f"Error {r.reason}. code: {r.status_code}")
-            return False
+            log.error(f"json: {r.json()}")
+            return None
