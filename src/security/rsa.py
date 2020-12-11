@@ -18,6 +18,7 @@ def generate_key():
     )
     return key
 
+
 def public_key(private_key):
     public_key = private_key.public_key()
     public_key_pem = public_key.public_bytes(
@@ -49,11 +50,7 @@ def load_key(path="/path/to/rsa_keys"):
 
 def sign(private_key, data):
     signature = private_key.sign(
-        bytes(data, "utf-8"),
-        padding.PSS(
-            mgf=padding.MGF1(hashes.SHA256()), salt_length=padding.PSS.MAX_LENGTH
-        ),
-        hashes.SHA256(),
+        data=bytes(data, "utf-8"), padding=padding.PKCS1v15(), algorithm=hashes.SHA256()
     )
     sig = base64.b64encode(signature)
     return sig.decode()

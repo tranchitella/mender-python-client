@@ -45,4 +45,5 @@ def load_key(path="/path/to/rsa_keys"):
 
 
 def sign(private_key, data):
+    log.debug("key: Signing the message body")
     return rsa.sign(private_key, data)

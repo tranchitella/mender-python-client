@@ -97,13 +97,12 @@ class Authorize(State):
         log.info("Authorizing...")
         log.debug(f"Current context: {context}")
         time.sleep(3)
-        authorize.request(
+        return authorize.request(
             context.config.ServerURL,
             context.config.TenantToken,
             context.identity_data,
             context.private_key,
         )
-        return True
 
 
 class Idle(State):
