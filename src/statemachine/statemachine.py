@@ -5,6 +5,7 @@ import src.inventory.aggregator as inventory
 import src.identity.aggregator as identity
 import src.bootstrap as bootstrap
 import src.client.authorize as authorize
+import src.client.inventory as client_inventory
 import src.config.config as config
 
 # TODO -- How to construct the context (?)
@@ -82,7 +83,7 @@ class StateMachine(object):
         log.debug(f"Initialized context: {self.context}")
         while True:
             self.unauthorized_machine.run(self.context)
-            self.authorized_machine.run()
+            self.authorized_machine.run(self.context)
 
 
 #
@@ -120,7 +121,9 @@ class UnauthorizedStateMachine(StateMachine):
 
     def run(self, context):
         while True:
-            if Authorize().run(context):
+            JWT = Authorize().run(context)
+            if JWT:
+                context.JWT = JWT
                 return
             Idle().run(context)
 
@@ -133,9 +136,9 @@ class AuthorizedStateMachine(StateMachine):
         self.idle_machine = IdleStateMachine()
         self.update_machine = UpdateStateMachine()
 
-    def run(self):
+    def run(self, context):
         while self.authorized:
-            self.idle_machine.run()  # Idle returns when an update is ready
+            self.idle_machine.run(context)  # Idle returns when an update is ready
             UpdateStateMachine().run()  # Update machine runs when idle detects an update
 
 
@@ -148,15 +151,16 @@ class AuthorizedStateMachine(StateMachine):
 
 
 class SyncInventory(State):
-    def run(self):
+    def run(self, context):
         print("Syncing the inventory...")
-        vals = inventory.aggregate(path="./tests/data/inventory/")
-        print(f"aggreated inventory data: {vals}")
+        inventory_data = inventory.aggregate(path="./tests/data/inventory/")
+        print(f"aggreated inventory data: {inventory_data}")
+        client_inventory.request(context.config.ServerURL, context.JWT, inventory_data)
         time.sleep(1)
 
 
 class SyncUpdate(State):
-    def run(self):
+    def run(self, context):
         print("Checking for updates...")
         time.sleep(2)
         return True
@@ -166,10 +170,10 @@ class IdleStateMachine(AuthorizedStateMachine):
     def __init__(self):
         pass
 
-    def run(self):
+    def run(self, context):
         while True:
-            SyncInventory().run()
-            if SyncUpdate().run():
+            SyncInventory().run(context)
+            if SyncUpdate().run(context):
                 return
 
 
