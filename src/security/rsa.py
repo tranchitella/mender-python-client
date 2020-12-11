@@ -18,7 +18,6 @@ def generate_key():
     )
     return key
 
-
 def public_key(private_key):
     public_key = private_key.public_key()
     public_key_pem = public_key.public_bytes(
