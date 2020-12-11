@@ -154,9 +154,9 @@ class AuthorizedStateMachine(StateMachine):
 class SyncInventory(State):
     def run(self, context):
         print("Syncing the inventory...")
-        inventory_data = inventory.aggregate(path="./tests/data/inventory/")
-        print(f"aggreated inventory data: {inventory_data}")
-        client_inventory.request(context.config.ServerURL, context.JWT, inventory_data)
+        # inventory_data = inventory.aggregate(path="./tests/data/inventory/")
+        # print(f"aggreated inventory data: {inventory_data}")
+        # client_inventory.request(context.config.ServerURL, context.JWT, inventory_data)
         time.sleep(1)
 
 
