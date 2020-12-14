@@ -11,29 +11,10 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
-import src.security.rsa as rsa
-
-import os
 import logging as log
+import os
 
-
-class Key(object):
-    """Class for holding the device key"""
-
-    def __init__(self):
-        pass
-
-    def sign(self, data):
-        pass
-
-    def pub_key(self):
-        pass
-
-    def generate(self):
-        pass
-
-    def load(self):
-        pass
+import src.security.rsa as rsa
 
 
 def generate_key():

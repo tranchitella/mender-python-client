@@ -15,9 +15,7 @@ import requests
 import logging as log
 import json
 
-link = "https://hosted.mender.io/api/devices/v1/deployments"
 
-# TODO -- Device-type is needed, as well as artifact_name!
 def request(
     server_url,
     JWT,
@@ -43,9 +41,6 @@ def request(
         log.info(f"New update available: {r.text}")
         # TODO - Verify the unmarshaling, for now take it for granted
         update_json = r.json()
-        # log.debug(f"")
-        # import pdb
-        # pdb.set_trace()
         update_id = update_json.get("id", "")
         update_url = update_json["artifact"]["source"]["uri"]
 

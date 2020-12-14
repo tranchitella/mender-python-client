@@ -36,7 +36,7 @@ def aggregate(path="/usr/share/mender/inventory"):
     log.info(f"Found the device type: {dt}")
     keyvals.update(dt)
     an = artifactinfo.get("tests/data/mender/artifact_info")
-    log.info(f"Found the device type: {dt}")
+    log.info(f"Found the artifact_name: {an}")
     keyvals.update(an)
     return keyvals
 

@@ -11,9 +11,9 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
-import requests
-import logging as log
 import json
+import logging as log
+import requests
 
 
 def request(server_url, JWT, inventory_data):
@@ -23,7 +23,6 @@ def request(server_url, JWT, inventory_data):
     headers = {"Content-Type": "application/json", "Authorization": "Bearer " + JWT}
     log.debug(f"inventory headers: {headers}")
     raw_data = json.dumps([{"name": k, "value": v} for k, v in inventory_data.items()])
-    log.debug(f"inventory: raw_data: {raw_data}")
     r = requests.put(
         server_url + "/api/devices/v1/inventory/device/attributes",
         headers=headers,
