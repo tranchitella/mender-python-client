@@ -16,7 +16,7 @@ import logging as log
 import logging.handlers
 
 import src.statemachine.statemachine as statemachine
-import src.bootstrap as bootstrap
+import src.bootstrap.bootstrap as bootstrap
 
 
 def run_daemon(args):

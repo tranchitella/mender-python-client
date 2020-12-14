@@ -14,7 +14,7 @@
 import logging as log
 import time
 
-import src.bootstrap as bootstrap
+import src.bootstrap.bootstrap as bootstrap
 import src.client.authorize as authorize
 import src.client.deployments as deployments
 import src.client.inventory as client_inventory
