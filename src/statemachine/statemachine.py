@@ -49,7 +49,7 @@ class State(object):
 
 
 class Init(State):
-    def run(self, context):
+    def run(self, context, force_bootstrap=False):
         log.debug("InitState: run()")
         try:
             context.config = {}
@@ -68,7 +68,9 @@ class Init(State):
             path="tests/data/identity/mender-device-identity"
         )
         context.identity_data = identity_data
-        private_key = bootstrap.now()
+        private_key = bootstrap.now(
+            force_bootstrap=force_bootstrap, private_key_path="tests/data/keys/"
+        )
         context.private_key = private_key
         context.foo = "bar"
         log.debug(f"Init set context to: {context}")
@@ -94,8 +96,8 @@ class StateMachine(object):
         self.unauthorized_machine = UnauthorizedStateMachine()
         self.authorized_machine = AuthorizedStateMachine()
 
-    def run(self):
-        self.context = Init().run(self.context)
+    def run(self, force_bootstrap=False):
+        self.context = Init().run(self.context, force_bootstrap)
         log.debug(f"Initialized context: {self.context}")
         while True:
             self.unauthorized_machine.run(self.context)

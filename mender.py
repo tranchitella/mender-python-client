@@ -21,7 +21,8 @@ import src.bootstrap.bootstrap as bootstrap
 
 def run_daemon(args):
     log.info("Running daemon...")
-    statemachine.StateMachine().run()
+    log.info(f"Force bootstrap {args.forcebootstrap}")
+    statemachine.StateMachine().run(force_bootstrap=args.forcebootstrap)
 
 
 def show_artifact(args):
@@ -30,8 +31,11 @@ def show_artifact(args):
 
 def run_bootstrap(args):
     log.info("Bootstrapping...")
-    bootstrap.now()
-    log.info("Device bootstrapped successfully")
+    bootstrap.now(force_bootstrap=True)
+
+
+def run_version(args):
+    print("version: alpha")
 
 
 def setup_log(args):
@@ -74,9 +78,6 @@ def main():
     subcommand_parser = parser.add_subparsers(title="COMMANDS")
     bootstrap_parser = subcommand_parser.add_parser(
         "bootstrap", help="Perform bootstrap and exit."
-    )
-    bootstrap_parser.add_argument(
-        "--forcebootstrap", "-F", help="Force bootstrap.", type=bool, default=False
     )
     bootstrap_parser.set_defaults(func=run_bootstrap)
     daemon_parser = subcommand_parser.add_parser(
@@ -126,18 +127,31 @@ def main():
         default="system certificates",
     )
     global_options.add_argument(
-        "--forcebootstrap", "-F", help="Force bootstrap.", type=bool, default=False
+        "--forcebootstrap",
+        "-F",
+        help="Force bootstrap.",
+        default=False,
+        action="store_true",
     )
     global_options.add_argument(
-        "--no-syslog", help="Disble logging to syslog.", type=bool, default=False
+        "--no-syslog",
+        help="Disble logging to syslog.",
+        default=False,
+        action="store_true",
     )
     global_options.add_argument(
-        "--skipverify", help="Skip certificate verification.", type=bool, default=False
+        "--skipverify",
+        help="Skip certificate verification.",
+        default=False,
+        action="store_true",
     )
     global_options.add_argument(
-        "--version", "-v", help="print the version", type=bool, default=False
+        "--version", "-v", help="print the version", default=False, action="store_true"
     )
     args = parser.parse_args()
+    if args.version:
+        run_version(args)
+        return
     setup_log(args)
     args.func(args)
 
