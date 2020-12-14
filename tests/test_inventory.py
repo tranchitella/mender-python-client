@@ -29,6 +29,7 @@ def inventory_scripts_path(tmpdir):
     os.chmod(f, stat.S_IRWXU | stat.S_IRWXO | stat.S_IRWXG)
     return str(d)
 
+
 @pytest.fixture
 def inventory_script(inventory_scripts_path):
     # For now

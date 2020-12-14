@@ -15,6 +15,7 @@ import logging as log
 import os
 import subprocess
 
+
 class ScriptKeyValueAggregator(object):
     """Handles the parsing of the output from any Mender identity of inventory scripts.
 
@@ -36,7 +37,9 @@ class ScriptKeyValueAggregator(object):
                 log.debug(f"Skipping line without output")
                 continue
             if len(arr) > 2:
-                log.error(f"script: {script_path} output line: {line} is improperly formatted with more than one '=' sign. Skipping.")
+                log.error(
+                    f"script: {script_path} output line: {line} is improperly formatted with more than one '=' sign. Skipping."
+                )
                 continue
             key, val = arr[0], arr[1]
             l = self.vals.get(key, [])

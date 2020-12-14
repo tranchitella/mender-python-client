@@ -63,7 +63,7 @@ class Client(object):
         log.debug(f"response: {r.text}")
         if r.status_code == 200:
             log.info("The client successfully authenticated with the Mender server")
-            JWT=r.text
+            JWT = r.text
             return JWT
         else:
             log.error("The client failed to authorize with the Mender server.")
