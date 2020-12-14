@@ -11,16 +11,18 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
-import time
 import logging as log
+import time
 
-import src.scripts.aggregator.inventory as inventory
-import src.scripts.aggregator.identity as identity
 import src.bootstrap as bootstrap
 import src.client.authorize as authorize
+import src.client.deployments as deployments
 import src.client.inventory as client_inventory
-import src.client.update as client_update
 import src.config.config as config
+import src.scripts.aggregator.identity as identity
+import src.scripts.aggregator.inventory as inventory
+import src.scripts.artifactinfo as artifactinfo
+import src.scripts.devicetype as devicetype
 
 # TODO -- How to construct the context (?)
 class Context(object):
@@ -176,7 +178,14 @@ class SyncInventory(State):
 class SyncUpdate(State):
     def run(self, context):
         log.info("Checking for updates...")
-        client_update.request(context.config.ServerURL, context.JWT)
+        device_type = devicetype.get("tests/data/mender/device_type")
+        artifact_name = artifactinfo.get("tests/data/mender/artifact_info")
+        deployments.request(
+            context.config.ServerURL,
+            context.JWT,
+            device_type=device_type,
+            artifact_name=artifact_name,
+        )
         time.sleep(2)
         return False
 

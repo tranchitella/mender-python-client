@@ -16,11 +16,14 @@
 # Parses key=value pairs from the inventory scripts on the device
 #
 
+import logging as log
 import os
 import os.path as path
 import subprocess
 
 from src.scripts.aggregator.aggregator import ScriptKeyValueAggregator
+import src.scripts.devicetype as devicetype
+import src.scripts.artifactinfo as artifactinfo
 
 
 def aggregate(path="/usr/share/mender/inventory"):
@@ -29,6 +32,12 @@ def aggregate(path="/usr/share/mender/inventory"):
     keyvals = {}
     for inventory_script in inventory_scripts(path):
         keyvals.update(inventory_script.run())
+    dt = devicetype.get("tests/data/mender/device_type")
+    log.info(f"Found the device type: {dt}")
+    keyvals.update(dt)
+    an = artifactinfo.get("tests/data/mender/artifact_info")
+    log.info(f"Found the device type: {dt}")
+    keyvals.update(an)
     return keyvals
 
 

@@ -28,8 +28,16 @@ class ScriptKeyValueAggregator(object):
 
     def run(self):
         output = subprocess.run(self.script_path, stdout=subprocess.PIPE, timeout=100)
-        ss = output.stdout.decode()
-        for line in ss.split("\n"):
+        data = output.stdout.decode()
+        return self.parse(data)
+
+    def collect(self):
+        with open(self.script_path) as fh:
+            data = fh.read()
+            return self.parse(data)
+
+    def parse(self, data):
+        for line in data.split("\n"):
             if line == "":
                 continue
             arr = line.strip().split("=")
