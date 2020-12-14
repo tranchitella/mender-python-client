@@ -1,31 +1,53 @@
 import argparse
 import logging as log
-import sys
+import logging.handlers
 
 import src.statemachine.statemachine as statemachine
 import src.bootstrap as bootstrap
 
+
 def run_daemon(args):
-    print("Running daemon...")
+    log.info("Running daemon...")
     statemachine.StateMachine().run()
-    print(args)
+
 
 def show_artifact(args):
-    print("Showing Artifact:")
-    print(args)
+    log.info("Showing Artifact:")
+
 
 def run_bootstrap(args):
-    print("Bootstrapping...")
-    print(args)
-    a = bootstrap.now()
-    print(type(a))
+    log.info("Bootstrapping...")
+    bootstrap.now()
     log.info("Device bootstrapped successfully")
 
+
+def setup_log(args):
+    level = ""
+    if args.log_level == "info":
+        level = log.INFO
+    if args.log_level == "debug":
+        level = log.DEBUG
+    if args.log_level == "warning":
+        level = log.WARNING
+    if args.log_level == "error":
+        level = log.ERROR
+    if args.log_level == "critical":
+        level = log.CRITICAL
+    handlers = []
+    handlers.append(log.StreamHandler())
+    # TODO - setup this for the device, see:
+    # https://docs.python.org/3/library/logging.handlers.html#sysloghandler
+    sl = log.handlers.SysLogHandler()
+    if args.no_syslog:
+        sl = log.NullHandler()
+    handlers.append(sl)
+    if args.log_file:
+        handlers.append(log.FileHandler(args.log_file))
+    log.basicConfig(level=level, handlers=handlers)
+    log.info(f"Log level set to {args.log_level}")
+
+
 def main():
-    # TODO -- set up logging properly
-    # For now, only write to the tty
-    log.basicConfig(stream=sys.stderr, level=log.DEBUG)
-    log.info("Hello, world!")
     parser = argparse.ArgumentParser(
         prog="mender",
         description="""mender
@@ -37,7 +59,6 @@ def main():
     # Commands
     #
     subcommand_parser = parser.add_subparsers(title="COMMANDS")
-    # TODO -- Needs the --forcebootstrap flag
     bootstrap_parser = subcommand_parser.add_parser(
         "bootstrap", help="Perform bootstrap and exit."
     )
@@ -76,9 +97,11 @@ def main():
         help="Mender state data DIRECTORY path.",
         default="/var/lib/mender",
     )
+    #
     # Logging setup
+    #
     global_options.add_argument(
-        "--log-file", "-L", help="FILE to log to.", default="syslog", metavar="FILE"
+        "--log-file", "-L", help="FILE to log to.", metavar="FILE"
     )
     global_options.add_argument(
         "--log-level", "-l", help="Set logging to level.", default="info"
@@ -101,19 +124,9 @@ def main():
     global_options.add_argument(
         "--version", "-v", help="print the version", type=bool, default=False
     )
-    # statemachine.StateMachine().run()
     args = parser.parse_args()
-    print(vars(args))
-    print(args)
+    setup_log(args)
     args.func(args)
-    # if args.bootstrap:
-    #     print("Bootstrapping...")
-    # if args.daemon:
-    #     print("Starting the Mender-client daemon...")
-    # if args.show_artifact:
-    #     print("Artifact: foobar")
-    # parser.print_help()
-
 
 
 if __name__ == "__main__":
