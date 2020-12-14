@@ -1,8 +1,8 @@
 import time
 import logging as log
 
-import src.inventory.aggregator as inventory
-import src.identity.aggregator as identity
+import src.scripts.aggregator.inventory as inventory
+import src.scripts.aggregator.identity as identity
 import src.bootstrap as bootstrap
 import src.client.authorize as authorize
 import src.client.inventory as client_inventory
@@ -109,7 +109,7 @@ class Authorize(State):
 
 class Idle(State):
     def run(self, context):
-        print("Idling...")
+        log.info("Idling...")
         time.sleep(10)
         return True
 
@@ -153,16 +153,16 @@ class AuthorizedStateMachine(StateMachine):
 
 class SyncInventory(State):
     def run(self, context):
-        print("Syncing the inventory...")
-        # inventory_data = inventory.aggregate(path="./tests/data/inventory/")
-        # print(f"aggreated inventory data: {inventory_data}")
-        # client_inventory.request(context.config.ServerURL, context.JWT, inventory_data)
+        log.info("Syncing the inventory...")
+        inventory_data = inventory.aggregate(path="./tests/data/inventory/")
+        log.debug(f"aggreated inventory data: {inventory_data}")
+        client_inventory.request(context.config.ServerURL, context.JWT, inventory_data)
         time.sleep(1)
 
 
 class SyncUpdate(State):
     def run(self, context):
-        print("Checking for updates...")
+        log.info("Checking for updates...")
         client_update.request(context.config.ServerURL, context.JWT)
         time.sleep(2)
         return False
@@ -190,49 +190,49 @@ class IdleStateMachine(AuthorizedStateMachine):
 
 class Download(State):
     def run(self):
-        print("Running the Download state...")
+        log.info("Running the Download state...")
         return ArtifactInstall()
 
 
 class ArtifactInstall(State):
     def run(self):
-        print("Running the ArtifactInstall state...")
+        log.info("Running the ArtifactInstall state...")
         return ArtifactReboot()
 
 
 class ArtifactInstall(State):
     def run(self):
-        print("Running the ArtifactInstall state...")
+        log.info("Running the ArtifactInstall state...")
         return ArtifactReboot()
 
 
 class ArtifactReboot(State):
     def run(self):
-        print("Running the ArtifactReboot state...")
+        log.info("Running the ArtifactReboot state...")
         return ArtifactCommit()
 
 
 class ArtifactCommit(State):
     def run(self):
-        print("Running the ArtifactCommit state...")
+        log.info("Running the ArtifactCommit state...")
         return ArtifactRollback()
 
 
 class ArtifactRollback(State):
     def run(self):
-        print("Running the ArtifactRollback state...")
+        log.info("Running the ArtifactRollback state...")
         return ArtifactRollbackReboot()
 
 
 class ArtifactRollbackReboot(State):
     def run(self):
-        print("Running the ArtifactRollbackReboot state...")
+        log.info("Running the ArtifactRollbackReboot state...")
         return ArtifactFailure()
 
 
 class ArtifactFailure(State):
     def run(self):
-        print("Running the ArtifactFailure state...")
+        log.info("Running the ArtifactFailure state...")
         return _UpdateDone()
 
 
