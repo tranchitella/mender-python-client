@@ -21,10 +21,16 @@ link = "https://hosted.mender.io/api/devices/v1/deployments"
 def request(
     server_url,
     JWT,
-    device_type="qemux86-64",
-    artifact_name="release-0.1",
+    device_type=None,
+    artifact_name=None,
     artifact_path="tests/data/artifact.mender",
 ):
+    if not device_type:
+        log.error("No device_type found. Update cannot proceed")
+        return
+    if not artifact_name:
+        log.error("No artifact_Name found. Update cannot proceed")
+        return
     headers = {"Content-Type": "application/json", "Authorization": "Bearer " + JWT}
     r = requests.get(
         server_url + "/api/devices/v1/deployments/device/deployments/next",
