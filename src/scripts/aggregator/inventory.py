@@ -11,10 +11,6 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
-# Aggregate inventory
-#
-# Parses key=value pairs from the inventory scripts on the device
-#
 
 import logging as log
 import os
@@ -22,22 +18,28 @@ import os.path as path
 import subprocess
 
 from src.scripts.aggregator.aggregator import ScriptKeyValueAggregator
-import src.scripts.devicetype as devicetype
 import src.scripts.artifactinfo as artifactinfo
+import src.scripts.devicetype as devicetype
 
 
-def aggregate(path="/usr/share/mender/inventory"):
+def aggregate(
+    script_path="/usr/share/mender/inventory",
+    device_type_path="tests/data/mender/device_type",
+    artifact_info_path="tests/data/mender/artifact_info",
+):
     """Runs all the inventory scripts in 'path', and parses the 'key=value' pairs
     into a data-structure ready for passing it on to the Mender server"""
     keyvals = {}
-    for inventory_script in inventory_scripts(path):
+    for inventory_script in inventory_scripts(script_path):
         keyvals.update(inventory_script.run())
-    dt = devicetype.get("tests/data/mender/device_type")
+    dt = devicetype.get(device_type_path)
     log.info(f"Found the device type: {dt}")
-    keyvals.update(dt)
-    an = artifactinfo.get("tests/data/mender/artifact_info")
+    if dt:
+        keyvals.update(dt)
+    an = artifactinfo.get(artifact_info_path)
     log.info(f"Found the artifact_name: {an}")
-    keyvals.update(an)
+    if an:
+        keyvals.update(an)
     return keyvals
 
 

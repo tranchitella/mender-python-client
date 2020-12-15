@@ -22,7 +22,7 @@ class ScriptKeyValueAggregator(object):
     These scripts support key=value pairs, with one output per line maximum.
     Multiple lines with a matching key are aggregated into an array."""
 
-    def __init__(self, script_path):
+    def __init__(self, script_path="unset"):
         self.script_path = script_path
         self.vals = {}
 
@@ -31,12 +31,12 @@ class ScriptKeyValueAggregator(object):
         data = output.stdout.decode()
         return self.parse(data)
 
-    def collect(self):
+    def collect(self, unique_keys=False):
         with open(self.script_path) as fh:
             data = fh.read()
-            return self.parse(data)
+            return self.parse(data, unique_keys)
 
-    def parse(self, data):
+    def parse(self, data, unique_keys=False):
         for line in data.split("\n"):
             if line == "":
                 continue
@@ -46,11 +46,14 @@ class ScriptKeyValueAggregator(object):
                 continue
             if len(arr) > 2:
                 log.error(
-                    f"script: {script_path} output line: {line} is improperly formatted with more than one '=' sign. Skipping."
+                    f"script: {self.script_path} output line: {line} is improperly formatted with more than one '=' sign. Skipping."
                 )
                 continue
             key, val = arr[0], arr[1]
             l = self.vals.get(key, [])
-            l.append(val)
+            if unique_keys:
+                l = [val]
+            elif val not in l:
+                l.append(val)
             self.vals[key] = l
         return self.vals
