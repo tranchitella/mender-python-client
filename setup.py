@@ -26,7 +26,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/mendersoftware/mender-python-client",
-    packages=setuptools.find_packages(exclude=("tests",)),
+    packages=setuptools.find_packages(include=[".", "src.*"], exclude=("tests",)),
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: Apache Software License",
