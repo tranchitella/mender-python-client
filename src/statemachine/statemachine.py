@@ -24,6 +24,8 @@ import src.scripts.aggregator.inventory as inventory
 import src.scripts.artifactinfo as artifactinfo
 import src.scripts.devicetype as devicetype
 
+from src.log.log import DeploymentLogHandler
+
 # TODO -- How to construct the context (?)
 class Context(object):
     """Class for storing the state-machine context"""
@@ -72,8 +74,14 @@ class Init(State):
             force_bootstrap=force_bootstrap, private_key_path="tests/data/keys/"
         )
         context.private_key = private_key
-        context.foo = "bar"
         log.debug(f"Init set context to: {context}")
+        #
+        # TODO - We need some way of knowing whether or not a deployment was in
+        # progress, and what the last state was, so that the deployment can be
+        # resumed, and so that we can start the state-machine on the passive
+        # partition, whenever needed. For now though, this is always False.
+        #
+        context.deployment_active = False
         return context
 
 
@@ -86,12 +94,9 @@ def run():
 
 class StateMachine(object):
 
-    # Maybe hold the context here (?)
-
     def __init__(self):
         log.info("Initializing the state-machine")
         self.context = Context()
-        self.context.private_key = "foo"
         log.info(f"ctx: {self.context}")
         self.unauthorized_machine = UnauthorizedStateMachine()
         self.authorized_machine = AuthorizedStateMachine()
@@ -99,9 +104,19 @@ class StateMachine(object):
     def run(self, force_bootstrap=False):
         self.context = Init().run(self.context, force_bootstrap)
         log.debug(f"Initialized context: {self.context}")
-        while True:
-            self.unauthorized_machine.run(self.context)
-            self.authorized_machine.run(self.context)
+        deployment_log_handler = DeploymentLogHandler()
+        logger = log.getLogger("")
+        logger.addHandler(deployment_log_handler)
+        self.context.deployment_log_handler = deployment_log_handler
+        if self.context.deployment_active:
+            self.context.deployment_log_handler.enable()
+            # TODO - Handle the state-machine during an active deployment
+            raise Exception("Unimplemented - active_deployment_handling")
+        else:
+            self.context.deployment_log_handler.disable()
+            while True:
+                self.unauthorized_machine.run(self.context)
+                self.authorized_machine.run(self.context)
 
 
 #
@@ -171,7 +186,7 @@ class AuthorizedStateMachine(StateMachine):
 class SyncInventory(State):
     def run(self, context):
         log.info("Syncing the inventory...")
-        inventory_data = inventory.aggregate(path="./tests/data/inventory/")
+        inventory_data = inventory.aggregate(script_path="./tests/data/inventory/")
         log.debug(f"aggreated inventory data: {inventory_data}")
         client_inventory.request(context.config.ServerURL, context.JWT, inventory_data)
         time.sleep(1)
@@ -182,12 +197,16 @@ class SyncUpdate(State):
         log.info("Checking for updates...")
         device_type = devicetype.get("tests/data/mender/device_type")
         artifact_name = artifactinfo.get("tests/data/mender/artifact_info")
-        deployments.request(
+        deployment = deployments.request(
             context.config.ServerURL,
             context.JWT,
             device_type=device_type,
             artifact_name=artifact_name,
         )
+        if deployment:
+            context.deployment = deployment
+            self.context.deployment_log_handler.enable()
+            return True
         time.sleep(2)
         return False
 
@@ -200,6 +219,7 @@ class IdleStateMachine(AuthorizedStateMachine):
         while True:
             SyncInventory().run(context)
             if SyncUpdate().run(context):
+                # Update available
                 return
 
 
@@ -213,8 +233,9 @@ class IdleStateMachine(AuthorizedStateMachine):
 
 
 class Download(State):
-    def run(self):
+    def run(self, context):
         log.info("Running the Download state...")
+        deployments.download(context.deployment)
         return ArtifactInstall()
 
 

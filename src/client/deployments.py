@@ -16,13 +16,40 @@ import logging as log
 import json
 
 
-def request(
-    server_url,
-    JWT,
-    device_type=None,
-    artifact_name=None,
-    artifact_path="tests/data/artifact.mender",
-):
+class DeploymentInfo(dict):
+    """Class which holds all the information related to a deployment.
+
+    The information is extracted from the json response from the server, and is
+    thus afterwards considered safe to access all the keys in the data.
+
+    """
+
+    def __init__(self, *args, **kw):
+        super(DeploymentInfo, self).__init__(self, *args, **kw)
+        self.__dict__ = self
+
+    def verify(self, deployment_json):
+        try:
+            deployment_json["id"]
+            deployment_json["artifact"]
+            deployment_json["artifact"]["artifact_name"]
+            deployment_json["artifact"]["source"]
+            deployment_json["artifact"]["source"]["uri"]
+            deployment_json["artifact"]["source"]["expire"]
+            deployment_json["device_types_compatible"]
+        except KeyError as ke:
+            log.error(
+                f"The key '{ke}' is missing from the deployments/next response JSON"
+            )
+            raise ke
+        except Exception as e:
+            log.error(
+                f"Unknown exception {e} trying to parse the deployments/next JSOn response"
+            )
+            raise e
+
+
+def request(server_url, JWT, device_type=None, artifact_name=None):
     if not device_type:
         log.error("No device_type found. Update cannot proceed")
         return
@@ -39,18 +66,23 @@ def request(
     log.error(f"Error {r.reason}. code: {r.status_code}")
     if r.status_code == 200:
         log.info(f"New update available: {r.text}")
-        # TODO - Verify the unmarshaling, for now take it for granted
         update_json = r.json()
-        update_id = update_json.get("id", "")
-        update_url = update_json["artifact"]["source"]["uri"]
-
-        response = requests.get(update_url, stream=True)
-
-        with open(artifact_path, "wb") as fh:
-            for data in response.iter_content():
-                fh.write(data)
+        try:
+            dd = DeploymentInfo().verify(update_json)
+            return dd
+        except Exception as e:
+            return None
     elif r.status_code == 204:
         log.info("No new update available}")
     else:
         log.debug(f"{r.json()}")
         log.error("Error while fetching update")
+
+
+def download(deployment_data, artifact_path="tests/data/artifact.mender"):
+    """Download the update artifact to the artifact_path"""
+    update_url = deployment_data.artifact.source.uri
+    response = requests.get(update_url, stream=True)
+    with open(artifact_path, "wb") as fh:
+        for data in response.iter_content():
+            fh.write(data)
