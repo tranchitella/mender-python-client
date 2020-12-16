@@ -34,7 +34,7 @@ setuptools.setup(
         "Development Status :: 2 - Pre-Alpha",
     ],
     keywords=["mender", "OTA", "updater"],
-    install_requires=["cryptography", "requests", "argparse"],
+    install_requires=["cryptography", "requests"],
     entry_points={"console_scripts": ["mender=mender:main"]},
     python_requires=">=3.6",
     zip_safe=False,
