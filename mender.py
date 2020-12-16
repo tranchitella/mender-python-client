@@ -153,7 +153,10 @@ def main():
         run_version(args)
         return
     setup_log(args)
-    args.func(args)
+    try:
+        args.func(args)
+    except Exception as e:
+        parser.print_usage()
 
 
 if __name__ == "__main__":
